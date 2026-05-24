@@ -65,4 +65,3 @@ Customized meal plans with:
 
 ---
 
-## 📂 Project Structure

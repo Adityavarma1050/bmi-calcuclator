@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BMI Pro — Premium Fitness Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- PARTICLE CANVAS -->
+  <canvas id="particleCanvas"></canvas>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast" class="toast" aria-live="polite"></div>
+
+  <!-- MODAL OVERLAY -->
+  <div id="modal" class="modal-overlay" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeModal()">✕</button>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+
+  <div class="wrapper">
+
+    <!-- ── TOP BAR ── -->
+    <header class="topbar">
+      <div class="logo">BMI<span>pro</span>
+        <div class="logo-pulse"></div>
+      </div>
+      <nav class="topbar-actions">
+        <div class="tip-badge" id="tipBadge">💡 Tip</div>
+        <button class="btn-icon" id="soundToggle" title="Toggle sound">🔔</button>
+        <button class="btn-icon" id="themeToggle" title="Toggle theme">🌙</button>
+        <button class="btn-icon" id="shareBtn" title="Share result">📤</button>
+      </nav>
+    </header>
+
+    <!-- ── NAV TABS ── -->
+    <div class="nav-tabs" role="tablist">
+      <button class="tab-btn active" data-tab="calculator" role="tab">⚡ Calculator</button>
+      <button class="tab-btn" data-tab="compare" role="tab">⚖️ Compare</button>
+      <button class="tab-btn" data-tab="tracker" role="tab">📈 Progress</button>
+      <button class="tab-btn" data-tab="workout" role="tab">🏋️ Workout Plan</button>
+      <button class="tab-btn" data-tab="diet" role="tab">🥗 Diet Plan</button>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         TAB 1 — CALCULATOR
+    ══════════════════════════════════════ -->
+    <div class="tab-panel active" id="tab-calculator">
+
+      <!-- HEALTH TIP BANNER -->
+      <div class="tip-banner" id="tipBanner">
+        <span class="tip-banner-icon">✨</span>
+        <div>
+          <div class="tip-banner-label">Health Tip of the Day</div>
+          <div id="tipText">Loading...</div>
+        </div>
+        <button class="tip-refresh" onclick="nextTip()" title="Next tip">↻</button>
+      </div>
+
+      <div class="grid-main">
+
+        <!-- INPUT CARD -->
+        <div class="card" id="inputCard">
+          <div class="card-title">Your Details</div>
+
+          <!-- HEIGHT -->
+          <div class="input-group">
+            <div class="input-label">
+              Height
+              <div class="toggle-unit">
+                <button class="toggle-btn active" id="btnCm" onclick="setUnit('cm')">cm</button>
+                <button class="toggle-btn" id="btnFt" onclick="setUnit('ft')">ft/in</button>
+              </div>
+            </div>
+            <div class="input-row" id="heightCmRow">
+              <input class="input-field" type="number" id="heightCmVal" placeholder="e.g. 170" min="50" max="300" />
+            </div>
+            <div class="input-row" id="heightFtRow" style="display:none">
+              <input class="input-field" type="number" id="heightFtVal" placeholder="ft" min="1" max="9" />
+              <input class="input-field inches" type="number" id="heightInVal" placeholder="in" min="0" max="11" />
+            </div>
+          </div>
+
+          <!-- WEIGHT -->
+          <div class="input-group">
+            <div class="input-label">
+              Weight
+              <div class="toggle-unit">
+                <button class="toggle-btn active" id="btnKg" onclick="setWeightUnit('kg')">kg</button>
+                <button class="toggle-btn" id="btnLb" onclick="setWeightUnit('lb')">lbs</button>
+              </div>
+            </div>
+            <input class="input-field" type="number" id="weightVal" placeholder="e.g. 70" min="1" max="500" />
+          </div>
+
+          <!-- AGE -->
+          <div class="input-group">
+            <div class="input-label">Age</div>
+            <input class="input-field" type="number" id="ageVal" placeholder="e.g. 25" min="1" max="120" />
+          </div>
+
+          <!-- ACTIVITY LEVEL -->
+          <div class="input-group">
+            <div class="input-label">Activity Level</div>
+            <select class="input-field" id="activityLevel">
+              <option value="1.2">Sedentary (little/no exercise)</option>
+              <option value="1.375">Lightly active (1–3 days/week)</option>
+              <option value="1.55" selected>Moderately active (3–5 days/week)</option>
+              <option value="1.725">Very active (6–7 days/week)</option>
+              <option value="1.9">Super active (physical job)</option>
+            </select>
+          </div>
+
+          <!-- GENDER -->
+          <div class="input-group">
+            <div class="input-label">Gender</div>
+            <div class="gender-row">
+              <button class="gender-btn active" data-g="male" onclick="setGender(this)">♂ Male</button>
+              <button class="gender-btn" data-g="female" onclick="setGender(this)">♀ Female</button>
+              <button class="gender-btn" data-g="other" onclick="setGender(this)">⚧ Other</button>
+            </div>
+          </div>
+
+          <button class="btn-calc" id="calcBtn" onclick="calculate()">
+            <span class="btn-text">⚡ Calculate BMI</span>
+            <span class="btn-loader" style="display:none">⟳</span>
+          </button>
+          <button class="btn-reset" onclick="resetForm()">↺ Reset</button>
+        </div>
+
+        <!-- RESULT CARD -->
+        <div class="card" id="resultCard">
+          <div class="card-title">BMI Result</div>
+
+          <!-- Circular BMI Ring -->
+          <div class="bmi-ring-wrap">
+            <svg class="bmi-ring" viewBox="0 0 140 140">
+              <circle class="ring-bg" cx="70" cy="70" r="58" />
+              <circle class="ring-fill" id="ringFill" cx="70" cy="70" r="58"
+                stroke-dasharray="364.4" stroke-dashoffset="364.4" />
+            </svg>
+            <div class="bmi-ring-inner">
+              <div class="bmi-number" id="bmiDisplay">–</div>
+              <div class="bmi-label">BMI</div>
+            </div>
+          </div>
+
+          <div class="bmi-category" id="bmiCategory">Enter your details to calculate</div>
+          <div class="bmi-percentile" id="bmiPercentile"></div>
+
+          <!-- GAUGE -->
+          <div class="gauge-wrap">
+            <div class="gauge-bar" id="gaugeBar">
+              <div class="gauge-pointer" id="gaugePointer" style="left:0%"></div>
+            </div>
+            <div class="gauge-labels">
+              <span style="color:#4facfe">Underweight</span>
+              <span style="color:#00f5a0">Normal</span>
+              <span style="color:#ff9a3c">Overweight</span>
+              <span style="color:#ff4d6d">Obese</span>
+            </div>
+          </div>
+
+          <!-- HEALTH CARD -->
+          <div class="health-card" id="healthCard">
+            <div class="health-icon" id="healthIcon">🔄</div>
+            <div class="health-title" id="healthTitle">Calculating...</div>
+            <ul class="tip-list" id="tipsList"></ul>
+            <div class="report-actions">
+              <button class="btn-download" onclick="downloadPDF()">📄 Download Report</button>
+              <button class="btn-download secondary" onclick="copyResult()">📋 Copy Result</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- GRAPH CARD -->
+        <div class="card">
+          <div class="card-title">BMI Scale Visualization</div>
+          <div class="graph-area" id="graphArea">
+            <div class="graph-bar" style="left:0;width:25%;background:rgba(79,172,254,0.75)">
+              <span>Under</span>
+            </div>
+            <div class="graph-bar" style="left:25%;width:30%;background:rgba(0,245,160,0.75)">
+              <span>Normal</span>
+            </div>
+            <div class="graph-bar" style="left:55%;width:20%;background:rgba(255,154,60,0.75)">
+              <span>Over</span>
+            </div>
+            <div class="graph-bar" style="left:75%;width:25%;background:rgba(255,77,109,0.75)">
+              <span>Obese</span>
+            </div>
+            <div class="graph-marker" id="graphMarker"></div>
+          </div>
+          <div class="graph-labels">
+            <span>10</span><span>18.5</span><span>25</span><span>30</span><span>40</span>
+          </div>
+          <div class="graph-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#4facfe"></div>Underweight &lt;18.5</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#00f5a0"></div>Healthy 18.5–24.9</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#ff9a3c"></div>Overweight 25–29.9</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#ff4d6d"></div>Obese ≥30</div>
+          </div>
+
+          <!-- MINI HISTORY TREND CHART -->
+          <div class="card-title" style="margin-top:24px">Trend (Last 7)</div>
+          <canvas id="trendChart" height="80"></canvas>
+        </div>
+
+        <!-- INSIGHTS CARD -->
+        <div class="card">
+          <div class="card-title">Advanced Insights</div>
+          <div class="insights-grid" id="insightsGrid">
+            <div class="insight-item" id="ins1">
+              <div class="insight-icon">⚖️</div>
+              <div class="insight-val" id="idealRange">–</div>
+              <div class="insight-desc">Ideal Weight Range</div>
+            </div>
+            <div class="insight-item" id="ins2">
+              <div class="insight-icon">📉</div>
+              <div class="insight-val" id="weightDiff">–</div>
+              <div class="insight-desc">Weight to Adjust</div>
+            </div>
+            <div class="insight-item" id="ins3">
+              <div class="insight-icon">💧</div>
+              <div class="insight-val" id="waterRec">–</div>
+              <div class="insight-desc">Daily Water Intake</div>
+            </div>
+            <div class="insight-item" id="ins4">
+              <div class="insight-icon">🔥</div>
+              <div class="insight-val" id="calRec">–</div>
+              <div class="insight-desc">Maintenance Calories</div>
+            </div>
+            <div class="insight-item" id="ins5">
+              <div class="insight-icon">🧬</div>
+              <div class="insight-val" id="bmrVal">–</div>
+              <div class="insight-desc">Basal Metabolic Rate</div>
+            </div>
+            <div class="insight-item" id="ins6">
+              <div class="insight-icon">📐</div>
+              <div class="insight-val" id="whrVal">–</div>
+              <div class="insight-desc">Body Fat % (Est.)</div>
+            </div>
+          </div>
+
+          <!-- CALORIE GOALS -->
+          <div class="calorie-goals" id="calorieGoals" style="display:none">
+            <div class="card-title" style="margin-top:20px">Calorie Goals by Objective</div>
+            <div class="calorie-goal-row">
+              <span>🏃 Weight Loss</span><strong id="calLoss">–</strong>
+            </div>
+            <div class="calorie-goal-row">
+              <span>⚖️ Maintenance</span><strong id="calMaintain">–</strong>
+            </div>
+            <div class="calorie-goal-row">
+              <span>💪 Muscle Gain</span><strong id="calGain">–</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- HISTORY CARD -->
+        <div class="card card-full">
+          <div class="card-title-row">
+            <div class="card-title">BMI History</div>
+            <div style="display:flex;gap:8px">
+              <button class="btn-clear" onclick="exportCSV()">📥 Export CSV</button>
+              <button class="btn-clear danger" onclick="clearHistory()">🗑 Clear</button>
+            </div>
+          </div>
+          <div id="historyContainer"></div>
+        </div>
+
+      </div><!-- /grid-main -->
+    </div><!-- /tab-calculator -->
+
+
+    <!-- ══════════════════════════════════════
+         TAB 2 — COMPARE
+    ══════════════════════════════════════ -->
+    <div class="tab-panel" id="tab-compare">
+      <div class="card">
+        <div class="card-title">BMI Comparison Tool</div>
+        <p class="card-desc">Compare your BMI with a friend or partner side-by-side.</p>
+        <div class="compare-grid">
+          <div class="compare-col">
+            <div class="compare-heading">Person A</div>
+            <div class="input-group">
+              <div class="input-label">Name</div>
+              <input class="input-field" id="cmpNameA" placeholder="e.g. Alex" />
+            </div>
+            <div class="input-group">
+              <div class="input-label">Height (cm)</div>
+              <input class="input-field" type="number" id="cmpHeightA" placeholder="170" />
+            </div>
+            <div class="input-group">
+              <div class="input-label">Weight (kg)</div>
+              <input class="input-field" type="number" id="cmpWeightA" placeholder="70" />
+            </div>
+          </div>
+          <div class="compare-vs">VS</div>
+          <div class="compare-col">
+            <div class="compare-heading">Person B</div>
+            <div class="input-group">
+              <div class="input-label">Name</div>
+              <input class="input-field" id="cmpNameB" placeholder="e.g. Jordan" />
+            </div>
+            <div class="input-group">
+              <div class="input-label">Height (cm)</div>
+              <input class="input-field" type="number" id="cmpHeightB" placeholder="165" />
+            </div>
+            <div class="input-group">
+              <div class="input-label">Weight (kg)</div>
+              <input class="input-field" type="number" id="cmpWeightB" placeholder="65" />
+            </div>
+          </div>
+        </div>
+        <button class="btn-calc" onclick="runCompare()"><span>⚖️ Compare Now</span></button>
+        <div id="compareResult" class="compare-result"></div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         TAB 3 — PROGRESS TRACKER
+    ══════════════════════════════════════ -->
+    <div class="tab-panel" id="tab-tracker">
+      <div class="grid-main">
+        <div class="card">
+          <div class="card-title">Log Entry</div>
+          <div class="input-group">
+            <div class="input-label">Date</div>
+            <input class="input-field" type="date" id="logDate" />
+          </div>
+          <div class="input-group">
+            <div class="input-label">Weight (kg)</div>
+            <input class="input-field" type="number" id="logWeight" placeholder="e.g. 72" />
+          </div>
+          <div class="input-group">
+            <div class="input-label">Height (cm)</div>
+            <input class="input-field" type="number" id="logHeight" placeholder="e.g. 170" />
+          </div>
+          <div class="input-group">
+            <div class="input-label">Notes (optional)</div>
+            <input class="input-field" id="logNotes" placeholder="e.g. After gym" />
+          </div>
+          <button class="btn-calc" onclick="addProgressEntry()"><span>➕ Add Entry</span></button>
+        </div>
+        <div class="card">
+          <div class="card-title">Progress Stats</div>
+          <div class="insights-grid" id="progressStats">
+            <div class="insight-item"><div class="insight-icon">📅</div><div class="insight-val" id="statEntries">0</div><div class="insight-desc">Entries Logged</div></div>
+            <div class="insight-item"><div class="insight-icon">📉</div><div class="insight-val" id="statChange">–</div><div class="insight-desc">BMI Change</div></div>
+            <div class="insight-item"><div class="insight-icon">🏆</div><div class="insight-val" id="statBest">–</div><div class="insight-desc">Best BMI</div></div>
+            <div class="insight-item"><div class="insight-icon">📆</div><div class="insight-val" id="statStreak">0</div><div class="insight-desc">Day Streak</div></div>
+          </div>
+        </div>
+        <div class="card card-full">
+          <div class="card-title">BMI Progress Chart</div>
+          <canvas id="progressChart" height="160"></canvas>
+          <div id="progressList" class="progress-list" style="margin-top:20px"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         TAB 4 — WORKOUT PLAN
+    ══════════════════════════════════════ -->
+    <div class="tab-panel" id="tab-workout">
+      <div class="card">
+        <div class="card-title">Personalized Workout Plan</div>
+        <p class="card-desc">Based on your BMI category — calculate first to unlock your plan.</p>
+        <div id="workoutPlan" class="workout-plan">
+          <div class="empty-state">⚡ Calculate your BMI on the Calculator tab first.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         TAB 5 — DIET PLAN
+    ══════════════════════════════════════ -->
+    <div class="tab-panel" id="tab-diet">
+      <div class="card">
+        <div class="card-title">Personalized Diet Plan</div>
+        <p class="card-desc">Tailored nutrition based on your BMI and calorie needs.</p>
+        <div id="dietPlan" class="diet-plan">
+          <div class="empty-state">🥗 Calculate your BMI on the Calculator tab first.</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /wrapper -->
+
+  <script src="app.js"></script>
+</body>
+</html>
